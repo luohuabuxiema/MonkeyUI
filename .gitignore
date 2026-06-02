@@ -1,0 +1,47 @@
+# --- Python 编译与缓存文件 ---
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# --- 虚拟环境 (Virtual Environments) ---
+.venv/
+venv/
+env/
+ENV/
+venv.bak/
+env.bak/
+
+# --- 打包与分发 ---
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+manifest
+
+# --- IDE 与编辑器配置文件 ---
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.swo
+
+# --- 系统临时文件 ---
+.DS_Store
+.DS_Store?
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# --- 本地开发临时目录 ---
+test_images/
+core-main/
+scripts/
