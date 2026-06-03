@@ -42,7 +42,7 @@ class MkTitleBar(QWidget):
         
         # Layouts
         self.main_layout = QHBoxLayout(self)
-        self.main_layout.setContentsMargins(10, 0, 10, 0)
+        self.main_layout.setContentsMargins(10, 0, 0, 0)
         self.main_layout.setSpacing(10)
         
         # UI Elements
@@ -279,10 +279,12 @@ class MkTitleBar(QWidget):
             self.btn_min.setFixedSize(12, 12)
             self.btn_max.setFixedSize(12, 12)
         else:
-            # Standard Windows Style
-            self.btn_close.setFixedSize(28, 28)
-            self.btn_min.setFixedSize(28, 28)
-            self.btn_max.setFixedSize(28, 28)
+            # Standard Windows Style — full-height, flush buttons like native chrome
+            btn_h = self._height
+            btn_w = 46
+            self.btn_min.setFixedSize(btn_w, btn_h)
+            self.btn_max.setFixedSize(btn_w, btn_h)
+            self.btn_close.setFixedSize(btn_w, btn_h)
             
             # Explicitly set icon size to prevent Qt from scaling small bitmaps, maintaining pixel sharpness
             from PySide6.QtCore import QSize
@@ -291,23 +293,27 @@ class MkTitleBar(QWidget):
             self.btn_close.setIconSize(QSize(12, 12))
             
             self.btn_min.setStyleSheet(f"""
-                QPushButton {{ background-color: transparent; border: none; border-radius: 4px; }}
+                QPushButton {{ background-color: transparent; border: none; border-radius: 0px; }}
                 QPushButton:hover {{ background-color: {hover_color}; }}
             """)
             self.btn_max.setStyleSheet(f"""
-                QPushButton {{ background-color: transparent; border: none; border-radius: 4px; }}
+                QPushButton {{ background-color: transparent; border: none; border-radius: 0px; }}
                 QPushButton:hover {{ background-color: {hover_color}; }}
             """)
             self.btn_close.setStyleSheet(f"""
-                QPushButton {{ background-color: transparent; border: none; border-radius: 4px; }}
-                QPushButton:hover {{ background-color: #e81123; }}
+                QPushButton {{ background-color: transparent; border: none; border-radius: 0px; }}
+                QPushButton:hover {{ background-color: #e81123; color: #ffffff; }}
             """)
 
     def rebuild_layout(self):
-        # Remove all widgets first
-        for i in reversed(range(self.main_layout.count())):
-            item = self.main_layout.takeAt(i)
-            # We don't delete them, just remove from layout
+        # Remove all items first — handle both widgets and sub-layouts
+        while self.main_layout.count():
+            item = self.main_layout.takeAt(0)
+            if item.layout():
+                # Clear sub-layout widgets (don't delete the buttons themselves)
+                sub = item.layout()
+                while sub.count():
+                    sub.takeAt(0)
         
         # Build layout according to macOS or Windows styling
         if self._button_style == "macos":
@@ -325,14 +331,22 @@ class MkTitleBar(QWidget):
             self.main_layout.addWidget(self.title_label)
             self.main_layout.addWidget(self.center_container, stretch=1)
         else:
-            # Icon, Title, Center Container, then Buttons on the right
+            # Icon, Title, Center Container, then Buttons flush-right
             self.main_layout.addWidget(self.icon_label)
             self.main_layout.addWidget(self.title_label)
             self.main_layout.addWidget(self.center_container, stretch=1)
             
-            self.main_layout.addWidget(self.btn_min)
-            self.main_layout.addWidget(self.btn_max)
-            self.main_layout.addWidget(self.btn_close)
+            # Group buttons with 0 spacing for native Windows chrome look
+            win_buttons_layout = QHBoxLayout()
+            win_buttons_layout.setContentsMargins(0, 0, 0, 0)
+            win_buttons_layout.setSpacing(0)
+            win_buttons_layout.addWidget(self.btn_min)
+            win_buttons_layout.addWidget(self.btn_max)
+            win_buttons_layout.addWidget(self.btn_close)
+            self.main_layout.addLayout(win_buttons_layout)
+
+        # Enforce the height — sizeHint() alone is only advisory
+        self.setFixedHeight(self._height)
 
     def mousePressEvent(self, event: QMouseEvent):
         if event.button() == Qt.MouseButton.LeftButton:
@@ -441,7 +455,7 @@ class MkWindow(QMainWindow):
 
     def init_custom_frame(self):
         # Custom frameless behavior
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowSystemMenuHint | Qt.WindowType.WindowMinimizeButtonHint)
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Window)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
         
         # 1. Root outer layout to support padding for drop shadow
@@ -627,8 +641,14 @@ class MkWindow(QMainWindow):
 
     def mouseReleaseEvent(self, event: QMouseEvent):
         self._resizing_dir = RESIZE_NONE
-        self.setCursor(Qt.CursorShape.ArrowCursor)
+        self.unsetCursor()
         super().mouseReleaseEvent(event)
+
+    def leaveEvent(self, event):
+        # Reset cursor when mouse leaves the window to prevent stale resize cursors
+        if self._resizing_dir == RESIZE_NONE:
+            self.unsetCursor()
+        super().leaveEvent(event)
 
     def _get_resize_direction(self, pos: QPoint) -> int:
         direction = RESIZE_NONE
@@ -651,7 +671,7 @@ class MkWindow(QMainWindow):
 
     def _update_cursor(self, direction: int):
         if direction == RESIZE_NONE:
-            self.setCursor(Qt.CursorShape.ArrowCursor)
+            self.unsetCursor()
         elif (direction & RESIZE_LEFT and direction & RESIZE_TOP) or (direction & RESIZE_RIGHT and direction & RESIZE_BOTTOM):
             self.setCursor(Qt.CursorShape.SizeFDiagCursor)
         elif (direction & RESIZE_RIGHT and direction & RESIZE_TOP) or (direction & RESIZE_LEFT and direction & RESIZE_BOTTOM):

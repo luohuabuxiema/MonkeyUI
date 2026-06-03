@@ -20,6 +20,59 @@ class MkImagePanel(QWidget):
         self._label = label
         self.update()
 
+    def get_image_rect(self):
+        """
+        计算图片以 contain 模式渲染时的实际区域（独立视口缩放）。
+        返回 QRect，表示图片在面板中的渲染位置和尺寸。
+        """
+        W = self.width()
+        H = self.height()
+        if self._pixmap.isNull() or W <= 0 or H <= 0:
+            return QRect(0, 0, W, H)
+        
+        w = self._pixmap.width()
+        h = self._pixmap.height()
+        r_pixmap = w / h
+        
+        # 获取 parent 中的 W_total 和 split_ratio
+        W_total = W
+        split_ratio = 0.5
+        if isinstance(self.parent(), QWidget):
+            W_total = self.parent().width()
+            if hasattr(self.parent(), "splitRatio"):
+                split_ratio = self.parent().splitRatio
+                
+        # 计算整个组件中单个图像 contain 时的理想宽度
+        r_total = W_total / H
+        if r_total > r_pixmap:
+            ideal_w = int(H * r_pixmap)
+        else:
+            ideal_w = W_total
+            
+        # 根据面板左右对齐，计算实际绘制宽度
+        max_w = min(W, int(H * r_pixmap))
+        if self._align_right:
+            # 右面板：当 split_ratio > 0.5 时收缩至 0
+            if split_ratio > 0.5:
+                scale = (1.0 - split_ratio) / 0.5
+                draw_w = int(max_w * scale)
+            else:
+                draw_w = max_w
+            draw_x = 0
+        else:
+            # 左面板：当 split_ratio < 0.5 时收缩至 0
+            if split_ratio < 0.5:
+                scale = split_ratio / 0.5
+                draw_w = int(max_w * scale)
+            else:
+                draw_w = max_w
+            draw_x = W - draw_w
+            
+        draw_h = int(draw_w / r_pixmap) if draw_w > 0 else 0
+        draw_y = (H - draw_h) // 2
+        
+        return QRect(draw_x, draw_y, draw_w, draw_h)
+
     def paintEvent(self, event):
         W = self.width()
         H = self.height()
@@ -29,52 +82,14 @@ class MkImagePanel(QWidget):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         
-        # 默认绘图与标签坐标范围
-        draw_x = 0
-        draw_y = 0
-        draw_w = W
-        draw_h = H
+        rect = self.get_image_rect()
         
-        # 1. 以 object-fit: contain 方式绘制完整图片 (无损、不裁剪)
+        # 1. 独立视口内绘制图片
         if not self._pixmap.isNull():
-            w = self._pixmap.width()
-            h = self._pixmap.height()
-            
-            r_panel = W / H
-            r_pixmap = w / h
-            
-            if r_panel > r_pixmap:
-                draw_h = H
-                draw_w = int(H * r_pixmap)
-                
-                # 获取父组件的分割比例，实现平滑对齐过渡
-                split_ratio = 0.5
-                if self.parent() and hasattr(self.parent(), "splitRatio"):
-                    split_ratio = self.parent().splitRatio
-                
-                draw_x_centered = (W - draw_w) // 2
-                
-                if self._align_right:
-                    # 右面板：默认靠左对齐以贴合分割线；当分割比例收缩至 0.0 时，平滑过渡到居中对齐
-                    draw_x_left = 0
-                    t = max(0.0, min(1.0, (0.5 - split_ratio) / 0.5)) if split_ratio < 0.5 else 0.0
-                    draw_x = int(t * draw_x_centered + (1.0 - t) * draw_x_left)
-                else:
-                    # 左面板：默认靠右对齐以贴合分割线；当分割比例收缩至 1.0 时，平滑过渡到居中对齐
-                    draw_x_right = W - draw_w
-                    t = max(0.0, min(1.0, (split_ratio - 0.5) / 0.5)) if split_ratio > 0.5 else 0.0
-                    draw_x = int(t * draw_x_centered + (1.0 - t) * draw_x_right)
-                draw_y = 0
-            else:
-                draw_w = W
-                draw_h = int(W / r_pixmap)
-                draw_x = 0
-                draw_y = (H - draw_h) // 2
-                
-            painter.drawPixmap(QRect(draw_x, draw_y, draw_w, draw_h), self._pixmap)
+            painter.drawPixmap(rect, self._pixmap)
 
-        # 2. 绘制浮动半透明文本标签 (贴合在图片实际渲染区内部，极致的视觉一致性)
-        if self._label:
+        # 2. 绘制浮动半透明文本标签
+        if self._label and rect.width() > 0:
             font = QFont("Microsoft YaHei", 9, QFont.Weight.Bold)
             painter.setFont(font)
             metrics = QFontMetrics(font)
@@ -84,24 +99,27 @@ class MkImagePanel(QWidget):
             rect_w = text_w + 20
             rect_h = text_h + 10
             
+            # 标签悬浮在图片边缘
             if self._align_right:
-                rect_x = draw_x + draw_w - rect_w - 15
+                label_x = rect.x() + rect.width() - rect_w - 15
             else:
-                rect_x = draw_x + 15
-            rect_y = draw_y + 15
+                label_x = rect.x() + 15
+                
+            label_y = rect.y() + 15
             
             # 画圆角卡片底牌
             painter.setBrush(QColor(0, 0, 0, 160))
             painter.setPen(Qt.PenStyle.NoPen)
-            painter.drawRoundedRect(QRect(rect_x, rect_y, rect_w, rect_h), 4, 4)
+            painter.drawRoundedRect(QRect(label_x, label_y, rect_w, rect_h), 4, 4)
             
             # 写白色文字
             painter.setPen(QColor("#ffffff"))
-            painter.drawText(QRect(rect_x, rect_y, rect_w, rect_h), Qt.AlignmentFlag.AlignCenter, self._label)
+            painter.drawText(QRect(label_x, label_y, rect_w, rect_h), Qt.AlignmentFlag.AlignCenter, self._label)
 
 class MkSplitterHandle(QWidget):
     """
     分屏器的玻璃手柄，支持拖动、悬浮高亮、点击左/右键独立折叠或展开侧边栏。
+    手柄的分割线和胶囊会自动对齐图片实际渲染区域的边界。
     """
     def __init__(self, parent):
         super().__init__(parent)
@@ -110,11 +128,26 @@ class MkSplitterHandle(QWidget):
         self._hover_area = None  # None, "left", "right"
         self._drag_start_x = 0
         self._drag_start_ratio = 0.5
+        # 图片实际渲染区域的纵向边界
+        self._image_top = 0
+        self._image_bottom = 0
+
+    def set_image_bounds(self, top, bottom):
+        """设置图片渲染区域的纵向边界，手柄将据此对齐。"""
+        self._image_top = top
+        self._image_bottom = bottom
+        self.update()
+
+    def _capsule_center_y(self):
+        """计算胶囊的纵向中心位置——在图片渲染区域内垂直居中。"""
+        img_top = self._image_top
+        img_bottom = self._image_bottom if self._image_bottom > self._image_top else self.height()
+        return (img_top + img_bottom) // 2
 
     def _get_area(self, pos):
-        # 玻璃胶囊的高度为 60px 宽度 20px，在手柄中央
-        h_y = self.height() // 2
-        if h_y - 30 <= pos.y() <= h_y + 30:
+        # 玻璃胶囊的高度为 60px 宽度 20px，贴合图片底部边框
+        cy = self._capsule_center_y()
+        if cy - 30 <= pos.y() <= cy + 30:
             if 2 <= pos.x() < 12:
                 return "left"
             elif 12 <= pos.x() <= 22:
@@ -141,7 +174,10 @@ class MkSplitterHandle(QWidget):
         pos = event.position()
         if self.parent()._is_dragging:
             delta_x = event.globalPosition().x() - self._drag_start_x
-            new_ratio = self._drag_start_ratio + delta_x / self.parent().width()
+            ideal_w = self.parent().get_ideal_image_width()
+            if ideal_w <= 0:
+                ideal_w = self.parent().width()
+            new_ratio = self._drag_start_ratio + delta_x / ideal_w
             self.parent().splitRatio = new_ratio
             event.accept()
         else:
@@ -168,19 +204,22 @@ class MkSplitterHandle(QWidget):
             event.accept()
 
     def paintEvent(self, event):
-        height = self.height()
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         
-        # 1. 绘制纵向极细分割线
+        # 获取图片渲染区域的纵向边界
+        img_top = self._image_top
+        img_bottom = self._image_bottom if self._image_bottom > self._image_top else self.height()
+        
+        # 1. 绘制纵向极细分割线 —— 仅在图片渲染区域内绘制
         line_pen = QPen(QColor("#ebeef5"))
         line_pen.setWidth(1.5)
         painter.setPen(line_pen)
-        painter.drawLine(12, 0, 12, height)
+        painter.drawLine(12, img_top, 12, img_bottom)
         
-        # 2. 绘制磨砂玻璃胶囊
-        handle_y = height // 2
-        capsule_rect = QRect(2, handle_y - 30, 20, 60)
+        # 2. 绘制磨砂玻璃胶囊 —— 贴合图片底部边框
+        cy = self._capsule_center_y()
+        capsule_rect = QRect(2, cy - 30, 20, 60)
         
         # 半透明磨砂背景
         painter.setBrush(QColor(255, 255, 255, 240))
@@ -189,7 +228,7 @@ class MkSplitterHandle(QWidget):
         
         # 3. 绘制胶囊内部的短中分线
         painter.setPen(QPen(QColor("#ebeef5"), 1))
-        painter.drawLine(12, handle_y - 20, 12, handle_y + 20)
+        painter.drawLine(12, cy - 20, 12, cy + 20)
         
         # 4. 绘制左/右侧悬浮高亮状态的矢量方向箭头
         # 左箭头
@@ -199,9 +238,9 @@ class MkSplitterHandle(QWidget):
             painter.setPen(QPen(QColor("#909399"), 2, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
             
         left_path = QPainterPath()
-        left_path.moveTo(8, handle_y - 4)
-        left_path.lineTo(5, handle_y)
-        left_path.lineTo(8, handle_y + 4)
+        left_path.moveTo(8, cy - 4)
+        left_path.lineTo(5, cy)
+        left_path.lineTo(8, cy + 4)
         painter.drawPath(left_path)
         
         # 右箭头
@@ -211,9 +250,9 @@ class MkSplitterHandle(QWidget):
             painter.setPen(QPen(QColor("#909399"), 2, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
             
         right_path = QPainterPath()
-        right_path.moveTo(16, handle_y - 4)
-        right_path.lineTo(19, handle_y)
-        right_path.lineTo(16, handle_y + 4)
+        right_path.moveTo(16, cy - 4)
+        right_path.lineTo(19, cy)
+        right_path.lineTo(16, cy + 4)
         painter.drawPath(right_path)
 
 class MkImageSplit(QWidget):
@@ -252,8 +291,9 @@ class MkImageSplit(QWidget):
     def set_images(self, left, right):
         """
         设置对比图片。支持传入文件路径、QPixmap 或 QImage。
-        如果 right 为 None，则隐藏手柄，只居中显示原图；
-        当传入有效的 right 时，显示手柄并执行向左滑开对比的平滑动画。
+        - 两者均为 None：重置为均等分屏（保持手柄可见）。
+        - left 有值但 right 为 None：仅展示原图，隐藏手柄并动画收缩。
+        - 两者均有值：显示手柄并执行向左滑开对比的平滑动画。
         """
         if left is None:
             self.left_panel.set_pixmap(QPixmap())
@@ -266,8 +306,14 @@ class MkImageSplit(QWidget):
             
         if right is None:
             self.right_panel.set_pixmap(QPixmap())
-            self.handle.hide()
-            self.splitRatio = 1.0
+            if left is None:
+                # 全部重置：保持均等分屏，手柄可见
+                self.handle.show()
+                self.splitRatio = 0.5
+            else:
+                # 仅有原图，隐藏手柄，全屏展示左侧
+                self.handle.hide()
+                self.splitRatio = 1.0
         else:
             if isinstance(right, str):
                 self.right_panel.set_pixmap(QPixmap(right))
@@ -302,16 +348,51 @@ class MkImageSplit(QWidget):
         self.update_layout()
         self.update()
 
+    def get_ideal_image_width(self):
+        """
+        计算在当前组件尺寸 (W, H) 下，单个图片以 contain 模式渲染时的理想宽度。
+        """
+        W = self.width()
+        H = self.height()
+        if W <= 0 or H <= 0:
+            return W
+            
+        pixmap = None
+        if not self.left_panel._pixmap.isNull():
+            pixmap = self.left_panel._pixmap
+        elif not self.right_panel._pixmap.isNull():
+            pixmap = self.right_panel._pixmap
+            
+        if pixmap is None or pixmap.isNull():
+            return W
+            
+        w = pixmap.width()
+        h = pixmap.height()
+        if h <= 0:
+            return W
+            
+        r_pixmap = w / h
+        r_total = W / H
+        if r_total > r_pixmap:
+            return int(H * r_pixmap)
+        else:
+            return W
+
     def update_layout(self):
         W = self.width()
         H = self.height()
         if W <= 0 or H <= 0:
             return
             
-        split_x = int(W * self._split_ratio)
+        ideal_w = self.get_ideal_image_width()
         
-        # 胶囊手柄 x 轴计算，并确保不会划出可视区域
-        handle_x = max(0, min(W - 24, split_x - 12))
+        # 计算基于实际图片边界映射的 split_x
+        min_x = (W - ideal_w) // 2
+        max_x = (W + ideal_w) // 2
+        split_x = int(min_x + self._split_ratio * (max_x - min_x))
+        
+        # 胶囊手柄 x 轴计算，放置在 split_x 处
+        handle_x = split_x - 12
         self.handle.setGeometry(handle_x, 0, 24, H)
         
         # 左面板几何位置
@@ -319,6 +400,25 @@ class MkImageSplit(QWidget):
         
         # 右面板几何位置
         self.right_panel.setGeometry(split_x, 0, W - split_x, H)
+        
+        # 计算图片实际渲染区域的联合边界，让手柄对齐图片内容
+        top = 0
+        bottom = H
+        if not self.left_panel._pixmap.isNull() and not self.right_panel._pixmap.isNull():
+            rect_l = self.left_panel.get_image_rect()
+            rect_r = self.right_panel.get_image_rect()
+            top = min(rect_l.y(), rect_r.y())
+            bottom = max(rect_l.y() + rect_l.height(), rect_r.y() + rect_r.height())
+        elif not self.left_panel._pixmap.isNull():
+            rect = self.left_panel.get_image_rect()
+            top = rect.y()
+            bottom = rect.y() + rect.height()
+        elif not self.right_panel._pixmap.isNull():
+            rect = self.right_panel.get_image_rect()
+            top = rect.y()
+            bottom = rect.y() + rect.height()
+            
+        self.handle.set_image_bounds(top, bottom)
         
         self.handle.raise_()
 
@@ -348,22 +448,22 @@ class MkImageSplit(QWidget):
 
     def _on_left_arrow_clicked(self):
         """
-        左箭头控制：若左侧有宽度，则平滑向左收缩到 0.0；若已处于收缩状态，则还原。
+        左箭头控制：若处于全开/全闭状态，则恢复到上次比例；否则平滑向左收缩到 0.0。
         """
-        if self._split_ratio > 0.0:
+        if self._split_ratio in (0.0, 1.0):
+            target = self._last_split_ratio if 0.0 < self._last_split_ratio < 1.0 else 0.5
+            self._animate_split_ratio(target)
+        else:
             self._last_split_ratio = self._split_ratio
             self._animate_split_ratio(0.0)
-        else:
-            target = self._last_split_ratio if self._last_split_ratio > 0.0 else 0.5
-            self._animate_split_ratio(target)
 
     def _on_right_arrow_clicked(self):
         """
-        右箭头控制：若右侧有宽度，则平滑向右收缩到 1.0；若已处于收缩状态，则还原。
+        右箭头控制：若处于全开/全闭状态，则恢复到上次比例；否则平滑向右收缩到 1.0。
         """
-        if self._split_ratio < 1.0:
+        if self._split_ratio in (0.0, 1.0):
+            target = self._last_split_ratio if 0.0 < self._last_split_ratio < 1.0 else 0.5
+            self._animate_split_ratio(target)
+        else:
             self._last_split_ratio = self._split_ratio
             self._animate_split_ratio(1.0)
-        else:
-            target = self._last_split_ratio if self._last_split_ratio < 1.0 else 0.5
-            self._animate_split_ratio(target)
