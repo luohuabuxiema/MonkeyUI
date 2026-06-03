@@ -243,13 +243,13 @@ class MkTitleBar(QWidget):
         hover_color = self._hover_color if self._hover_color else "rgba(0,0,0,0.1)"
         
         # Get icons (render at higher resolution for High-DPI crispness)
-        icon_min = MkPhosphorIcon.get_icon("minus", text_color, text_color, 32)
-        icon_close = MkPhosphorIcon.get_icon("x", text_color, "#ffffff" if self._preset != "soda" else text_color, 32)
+        icon_min = MkPhosphorIcon.get_icon("minus", text_color, text_color, 12)
+        icon_close = MkPhosphorIcon.get_icon("x", text_color, "#ffffff" if self._preset != "soda" else text_color, 12)
         
         is_max = False
         if self.parent_window and self.parent_window.window():
             is_max = self.parent_window.window().isMaximized()
-        icon_max = MkPhosphorIcon.get_icon("restore" if is_max else "square", text_color, text_color, 32)
+        icon_max = MkPhosphorIcon.get_icon("restore" if is_max else "square", text_color, text_color, 12)
         
         self.btn_min.setIcon(icon_min)
         self.btn_max.setIcon(icon_max)

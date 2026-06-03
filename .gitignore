@@ -46,5 +46,8 @@ test_images/
 core-main/
 scripts/
 ultralytics/
+weights/
+core/
+ui/
 
 mainui.py

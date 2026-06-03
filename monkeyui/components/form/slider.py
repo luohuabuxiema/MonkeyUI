@@ -15,6 +15,7 @@ class MkSlider(QWidget):
         super().__init__(parent)
         self._orientation = orientation
         self._show_value = True
+        self._formatter = None
 
         self._setup_ui()
         self._setup_style()
@@ -60,9 +61,10 @@ class MkSlider(QWidget):
         return super().eventFilter(obj, event)
 
     def _on_value_changed(self, value):
-        self.value_label.setText(str(value))
+        display_text = self._formatter(value) if self._formatter else str(value)
+        self.value_label.setText(display_text)
         # 拖动时显示当前的 value 气泡提示
-        QToolTip.showText(QCursor.pos(), str(value), self.slider)
+        QToolTip.showText(QCursor.pos(), display_text, self.slider)
         self.valueChanged.emit(value)
 
     def _setup_style(self):
@@ -73,6 +75,8 @@ class MkSlider(QWidget):
         self.slider.setStyleSheet(f"""
             QSlider:horizontal {{
                 min-height: 24px;
+                border: none;
+                background: transparent;
             }}
             QSlider::groove:horizontal {{
                 border: none;
@@ -103,6 +107,8 @@ class MkSlider(QWidget):
             
             QSlider:vertical {{
                 min-width: 24px;
+                border: none;
+                background: transparent;
             }}
             QSlider::groove:vertical {{
                 border: none;
@@ -138,7 +144,14 @@ class MkSlider(QWidget):
 
     def setValue(self, val):
         self.slider.setValue(val)
-        self.value_label.setText(str(val))
+        display_text = self._formatter(val) if self._formatter else str(val)
+        self.value_label.setText(display_text)
+
+    def set_formatter(self, formatter_func):
+        """Set a custom function to format the integer value to a string for display."""
+        self._formatter = formatter_func
+        display_text = formatter_func(self.value()) if formatter_func else str(self.value())
+        self.value_label.setText(display_text)
 
     def value(self):
         return self.slider.value()

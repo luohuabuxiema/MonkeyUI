@@ -2,6 +2,7 @@ import os
 from PySide6.QtSvg import QSvgRenderer
 from PySide6.QtGui import QIcon, QPixmap, QPainter
 from PySide6.QtCore import QByteArray, QSize, Qt
+from PySide6.QtWidgets import QApplication
 
 # SVG paths from Phosphor Icons (Regular style, stroke-width=16, viewBox="0 0 256 256")
 PHOSPHOR_ICONS = {
@@ -121,6 +122,25 @@ PHOSPHOR_ICONS = {
         <rect width="256" height="256" fill="none"/>
         <circle cx="116" cy="116" r="84" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
         <line x1="175.4" y1="175.4" x2="224" y2="224" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+    </svg>""",
+    
+    "upload-simple": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+        <rect width="256" height="256" fill="none"/>
+        <polyline points="80 80 128 32 176 80" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+        <line x1="128" y1="32" x2="128" y2="176" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+        <path d="M40,168v40a8,8,0,0,0,8,8H208a8,8,0,0,0,8-8V168" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+    </svg>""",
+    
+    "file": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+        <rect width="256" height="256" fill="none"/>
+        <path d="M48,224V40a16,16,0,0,1,16-16h96l56,56V224a16,16,0,0,1-16,16H64A16,16,0,0,1,48,224Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+        <polyline points="160 24 160 80 216 80" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+    </svg>""",
+    
+    "video-camera": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+        <rect width="256" height="256" fill="none"/>
+        <path d="M12,72H164a8,8,0,0,1,8,8V176a8,8,0,0,1-8,8H12a8,8,0,0,1-8-8V80A8,8,0,0,1,12,72Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
+        <path d="M172,108l68.7-34.3A8,8,0,0,1,252,80.8v94.4a8,8,0,0,1-11.3,7.1L172,148" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"/>
     </svg>"""
 }
 
@@ -130,11 +150,20 @@ class MkPhosphorIcon:
     @staticmethod
     def get_pixmap(name: str, color: str = "#606266", size: int = 16) -> QPixmap:
         """Returns a QPixmap for the given Phosphor Icon styled with the color and size."""
+        from PySide6.QtWidgets import QApplication
+        from PySide6.QtCore import QRectF
+        
+        app = QApplication.instance()
+        ratio = app.devicePixelRatio() if app else 1.0
+        
+        physical_size = int(size * ratio)
+        
         svg_content = PHOSPHOR_ICONS.get(name)
         if not svg_content:
             # Return an empty pixmap if the icon is not found
-            pix = QPixmap(size, size)
+            pix = QPixmap(physical_size, physical_size)
             pix.fill(Qt.GlobalColor.transparent)
+            pix.setDevicePixelRatio(ratio)
             return pix
             
         # Dynamically recolor by replacing currentColor with the chosen hex color
@@ -143,16 +172,28 @@ class MkPhosphorIcon:
         byte_array = QByteArray(svg_colored.encode("utf-8"))
         renderer = QSvgRenderer(byte_array)
         
-        pixmap = QPixmap(size, size)
+        pixmap = QPixmap(physical_size, physical_size)
         pixmap.fill(Qt.GlobalColor.transparent)
         
         painter = QPainter(pixmap)
         # Enable smooth rendering
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-        renderer.render(painter)
+        
+        # Add 1 physical pixel padding as a safety margin to prevent edge clipping
+        # due to fractional device pixel ratios.
+        padding = 1 if physical_size > 8 else 0
+        target_rect = QRectF(
+            padding, 
+            padding, 
+            physical_size - 2 * padding, 
+            physical_size - 2 * padding
+        )
+        
+        renderer.render(painter, target_rect)
         painter.end()
         
+        pixmap.setDevicePixelRatio(ratio)
         return pixmap
 
     @staticmethod

@@ -252,22 +252,35 @@ class MkImageSplit(QWidget):
     def set_images(self, left, right):
         """
         设置对比图片。支持传入文件路径、QPixmap 或 QImage。
+        如果 right 为 None，则隐藏手柄，只居中显示原图；
+        当传入有效的 right 时，显示手柄并执行向左滑开对比的平滑动画。
         """
-        if isinstance(left, str):
+        if left is None:
+            self.left_panel.set_pixmap(QPixmap())
+        elif isinstance(left, str):
             self.left_panel.set_pixmap(QPixmap(left))
         elif isinstance(left, QPixmap):
             self.left_panel.set_pixmap(left)
         elif isinstance(left, QImage):
             self.left_panel.set_pixmap(QPixmap.fromImage(left))
             
-        if isinstance(right, str):
-            self.right_panel.set_pixmap(QPixmap(right))
-        elif isinstance(right, QPixmap):
-            self.right_panel.set_pixmap(right)
-        elif isinstance(right, QImage):
-            self.right_panel.set_pixmap(QPixmap.fromImage(right))
+        if right is None:
+            self.right_panel.set_pixmap(QPixmap())
+            self.handle.hide()
+            self.splitRatio = 1.0
+        else:
+            if isinstance(right, str):
+                self.right_panel.set_pixmap(QPixmap(right))
+            elif isinstance(right, QPixmap):
+                self.right_panel.set_pixmap(right)
+            elif isinstance(right, QImage):
+                self.right_panel.set_pixmap(QPixmap.fromImage(right))
             
-        self.update_layout()
+            self.handle.show()
+            if self._split_ratio >= 0.99:
+                self._animate_split_ratio(0.5)
+            else:
+                self.update_layout()
 
     def set_labels(self, left_label: str, right_label: str):
         """

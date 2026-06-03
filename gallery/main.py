@@ -12,7 +12,7 @@ from monkeyui import (
     MkPagination, MkDropdown, MkSwitch, MkSlider, MkDatePicker, MkForm,
     MkInput, MkCaptchaWidget, MkAuthScreen, MkMessage,
     MkAvatar, MkTable, MkDataTable, MkImageCompare, MkImageSplit,
-    MkTitleBar, MkWindow
+    MkTitleBar, MkWindow, MkUpload, MkComboBox, MkMultiComboBox
 )
 
 class ButtonGallery(QWidget):
@@ -408,7 +408,7 @@ class DataTableGallery(QWidget):
         self.action_label.setText(f"操作日志：[删除信号] 触发绝对行号 {index}，数据内容: {row_dict['name']}")
 
 class FormGallery(QWidget):
-    """表单录入组件展示页 (Switch, Slider, DatePicker, Form)"""
+    """表单录入组件展示页 (Switch, Slider, DatePicker, ComboBox, MultiComboBox, Form)"""
     def __init__(self):
         super().__init__()
         layout = QVBoxLayout(self)
@@ -417,7 +417,7 @@ class FormGallery(QWidget):
         title_font = QFont("Microsoft YaHei", 12, QFont.Bold)
         
         # 1. 结构化表单
-        label_form = QLabel("表单与输入组件 (Form, Switch, Slider, DatePicker)")
+        label_form = QLabel("表单与输入组件 (Form, Switch, Slider, DatePicker, ComboBox, MultiComboBox)")
         label_form.setFont(title_font)
         layout.addWidget(label_form)
         
@@ -436,6 +436,22 @@ class FormGallery(QWidget):
         # DatePicker
         self.date_picker = MkDatePicker()
         self.form.add_item("活动时间", self.date_picker)
+        
+        # ComboBox (Single Select)
+        self.combobox = MkComboBox()
+        self.combobox.addItems(["选项一 (Option 1)", "选项二 (Option 2)", "选项三 (Option 3)"])
+        self.form.add_item("单选下拉框", self.combobox)
+        
+        # MultiComboBox (Multi Select)
+        self.multi_combobox = MkMultiComboBox()
+        self.multi_combobox.addItems({
+            0: "苹果 (Apple)",
+            1: "香蕉 (Banana)",
+            2: "橙子 (Orange)",
+            3: "葡萄 (Grape)",
+            4: "西瓜 (Watermelon)"
+        })
+        self.form.add_item("多选下拉框", self.multi_combobox)
         
         layout.addWidget(self.form)
         layout.addStretch()
@@ -1069,6 +1085,85 @@ class WindowGallery(QWidget):
         self.demo_win.resize(640, 420)
         self.demo_win.show()
 
+class UploadGallery(QWidget):
+    """文件上传组件展示页 (MkUpload)"""
+    def __init__(self):
+        super().__init__()
+        layout = QVBoxLayout(self)
+        layout.setSpacing(25)
+        
+        title_font = QFont("Microsoft YaHei", 12, QFont.Bold)
+        
+        # Title & Desc
+        label_title = QLabel("文件上传 (Upload)")
+        label_title.setFont(title_font)
+        layout.addWidget(label_title)
+        
+        desc = QLabel("支持拖拽文件和点击选择上传，内置文件类型限制、体积上限过滤以及美观的已选择文件列表。")
+        desc.setStyleSheet("color: #64748b; font-size: 13px;")
+        layout.addWidget(desc)
+        
+        # 1. Single File Upload
+        label_single = QLabel("单文件上传 (Single File)")
+        label_single.setFont(QFont("Microsoft YaHei", 10, QFont.Bold))
+        layout.addWidget(label_single)
+        
+        self.upload_single = MkUpload(multiple=False, max_size_mb=10, tip_text="支持任意单文件，文件体积不超过 10MB")
+        layout.addWidget(self.upload_single)
+        
+        # 2. Image-only Multi-file Upload
+        label_multi_img = QLabel("图片多选上传 (Image Files Only)")
+        label_multi_img.setFont(QFont("Microsoft YaHei", 10, QFont.Bold))
+        layout.addWidget(label_multi_img)
+        
+        self.upload_images = MkUpload(
+            multiple=True, 
+            accept_filters=["*.png", "*.jpg", "*.jpeg", "*.gif"], 
+            max_size_mb=5, 
+            tip_text="仅支持图片格式 (png, jpg, jpeg, gif)，单个不超过 5MB"
+        )
+        layout.addWidget(self.upload_images)
+        
+        # Log Box to display drop/upload logs
+        label_logs = QLabel("上传操作日志 (Interaction Logs)")
+        label_logs.setFont(QFont("Microsoft YaHei", 10, QFont.Bold))
+        layout.addWidget(label_logs)
+        
+        self.log_area = QLabel("等待上传交互...")
+        self.log_area.setStyleSheet("""
+            QLabel {
+                background-color: #f1f5f9;
+                border: 1px solid #cbd5e1;
+                border-radius: 6px;
+                padding: 10px;
+                font-family: Consolas;
+                font-size: 11px;
+                color: #334155;
+            }
+        """)
+        layout.addWidget(self.log_area)
+        
+        # Connect signals to update log box
+        self.upload_single.filesSelected.connect(self._on_single_selected)
+        self.upload_images.filesSelected.connect(self._on_images_selected)
+        self.upload_single.fileRemoved.connect(lambda f: self._on_file_removed("单文件", f))
+        self.upload_images.fileRemoved.connect(lambda f: self._on_file_removed("图片列表", f))
+        
+        layout.addStretch()
+
+    def _on_single_selected(self, files):
+        if files:
+            self.log_area.setText(f"[单文件已选择]: {files[0]}")
+        else:
+            self.log_area.setText("[单文件已选择]: 无")
+            
+    def _on_images_selected(self, files):
+        files_str = "\n  - ".join(files)
+        self.log_area.setText(f"[多图已选择 ({len(files)}个)]:\n  - {files_str}" if files else "[多图已选择]: 无")
+        
+    def _on_file_removed(self, category, file_path):
+        self.log_area.setText(f"[{category} 移除了文件]: {os.path.basename(file_path)}")
+
 class MainGallery(QWidget):
     def __init__(self):
         super().__init__()
@@ -1097,6 +1192,7 @@ class MainGallery(QWidget):
         sub_form = self.sidebar.add_submenu("📝 表单组件")
         self.sidebar.add_submenu_item(sub_form, "form", "开关、滑块与日期")
         self.sidebar.add_submenu_item(sub_form, "authscreen", "Auth 登录与注册")
+        self.sidebar.add_submenu_item(sub_form, "upload", "Upload 上传组件")
         
         sub_data = self.sidebar.add_submenu("📊 数据展示")
         self.sidebar.add_submenu_item(sub_data, "data", "头像与表格")
@@ -1129,6 +1225,7 @@ class MainGallery(QWidget):
         self.page_image_compare = ImageCompareGallery()
         self.page_image_split = ImageSplitGallery()
         self.page_window = WindowGallery()
+        self.page_upload = UploadGallery()
         self.page_empty = QWidget()
         
         self.content_area.addWidget(self.page_button)
@@ -1143,6 +1240,7 @@ class MainGallery(QWidget):
         self.content_area.addWidget(self.page_image_compare)
         self.content_area.addWidget(self.page_image_split)
         self.content_area.addWidget(self.page_window)
+        self.content_area.addWidget(self.page_upload)
         self.content_area.addWidget(self.page_empty)
         
         main_layout.addWidget(self.content_area, stretch=1)
@@ -1191,6 +1289,8 @@ class MainGallery(QWidget):
             self.content_area.setCurrentWidget(self.page_image_split)
         elif item_id == "window":
             self.content_area.setCurrentWidget(self.page_window)
+        elif item_id == "upload":
+            self.content_area.setCurrentWidget(self.page_upload)
         else:
             self.content_area.setCurrentWidget(self.page_empty)
 
