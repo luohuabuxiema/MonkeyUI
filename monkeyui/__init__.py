@@ -29,6 +29,9 @@ from .components.feedback.alert import MkAlert
 from .components.feedback.progress_bar import MkProgressBar
 from .components.feedback.progress_ring import MkProgressRing
 
+# Layout
+from .components.layout.window import MkTitleBar, MkWindow
+
 __version__ = "0.1.0"
 
 __all__ = [
@@ -55,5 +58,7 @@ __all__ = [
     "MkImageSplit",
     "MkAlert",
     "MkProgressBar",
-    "MkProgressRing"
+    "MkProgressRing",
+    "MkTitleBar",
+    "MkWindow"
 ]

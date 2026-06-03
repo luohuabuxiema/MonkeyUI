@@ -8,28 +8,40 @@ import sys
 import os
 from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QStackedWidget
 from PySide6.QtCore import Qt
-from monkeyui import MkButton, MkAlert, MkSwitch, MkSlider, MkMenu, MkImageCompare
+from monkeyui import MkButton, MkAlert, MkSwitch, MkSlider, MkMenu, MkImageCompare, MkWindow
 
 
-class QuickStartApp(QWidget): 
+class QuickStartApp(MkWindow): 
     def __init__(self): 
-        super().__init__() 
-        self.setWindowTitle("MonkeyUI 企业级侧边栏布局")
+        super().__init__(use_custom_title_bar=True, preset="default") 
+        
+        # 自定义标题栏：高度加高，移除下边框线
+        self.titlebar._height = 48
+        self.titlebar._border_bottom = "none"
+        self.titlebar.apply_theme_colors()
+        self.titlebar.rebuild_layout()
+        self.update_style()
+        
+        self.setWindowTitle("基于MonkeyUI通用的YOLO目标检测系统 ")
+        self.resize(1200, 800)
+        
         # --- 创建主布局（左右结构） ---
         # 使用 QHBoxLayout（水平布局）
         # 左侧放侧边栏(MkMenu)，右侧放内容区(QStackedWidget)
-        self.main_layout = QHBoxLayout(self)
+        self.central_widget = QWidget()
+        self.main_layout = QHBoxLayout(self.central_widget)
         self.main_layout.setContentsMargins(0, 0, 0, 0)  # 去掉窗口周围的空白边距
         self.main_layout.setSpacing(0)                  # 去掉组件之间的空隙
 
         # --- 创建并配置侧边栏 ---
         # 传入标题、图标和收缩模式
         self.sidebar = MkMenu(title="测试系统", collapse_mode="hamburger")
+        self.sidebar.set_border_right("none")
         
         # 给侧边栏添加菜单项
         self.sidebar.add_item("home", "首页控制台", icon="house")
-        self.sidebar.add_item("data", "数据中心", icon="chart-bar")
-        self.sidebar.add_item("settings", "系统设置", icon="gear")
+        self.sidebar.add_item("data", "推理检测", icon="chart-bar")
+        self.sidebar.add_item("settings", "历史记录", icon="gear")
         
         # 将侧边栏加入到主布局的左侧
         self.main_layout.addWidget(self.sidebar)
@@ -63,12 +75,15 @@ class QuickStartApp(QWidget):
         # --- 4. 连接信号，实现点击侧边栏切换页面 ---
         self.sidebar.itemClicked.connect(self.on_menu_clicked)
         
+        # 将整体页面组件注册为 MkWindow 的中央部件
+        self.setCentralWidget(self.central_widget)
+        
         # 默认选中第一项
         self.sidebar.set_active("home")
 
     def on_menu_clicked(self, item_id):
         """当侧边栏菜单项被点击时触发的函数"""
-        # 1. 切换页面内容
+        # 切换页面内容
         if item_id == "home":
             self.content_area.setCurrentWidget(self.page_home)
         elif item_id == "data":

@@ -3,15 +3,16 @@ import os
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QStackedWidget, QFrame, QComboBox, QCheckBox, QPushButton, QLineEdit
-from PySide6.QtGui import QFont, QPixmap
+from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QStackedWidget, QFrame, QComboBox, QCheckBox, QPushButton, QLineEdit, QSlider
+from PySide6.QtGui import QFont, QPixmap, QIcon
 from PySide6.QtCore import Qt
 from monkeyui import (
     MkButton, MkCheckBox, MkMenu, MkTopbar, MkBreadcrumb, MkTabs,
     MkAlert, MkProgressBar, MkProgressRing,
     MkPagination, MkDropdown, MkSwitch, MkSlider, MkDatePicker, MkForm,
     MkInput, MkCaptchaWidget, MkAuthScreen, MkMessage,
-    MkAvatar, MkTable, MkDataTable, MkImageCompare, MkImageSplit
+    MkAvatar, MkTable, MkDataTable, MkImageCompare, MkImageSplit,
+    MkTitleBar, MkWindow
 )
 
 class ButtonGallery(QWidget):
@@ -757,6 +758,317 @@ class ImageSplitGallery(QWidget):
         tip_label.setStyleSheet("color: #909399; font-size: 12px; font-style: italic;")
         layout.addWidget(tip_label)
 
+class WindowGallery(QWidget):
+    """自定义窗口与标题栏展示页"""
+    def __init__(self):
+        super().__init__()
+        # Use a horizontal layout for the split page: controls on the left, preview on the right
+        main_layout = QHBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(30)
+        
+        # Left Panel (Controls)
+        control_panel = QFrame(self)
+        control_panel.setFixedWidth(280)
+        control_panel.setStyleSheet("""
+            QFrame {
+                background-color: #f8fafc;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                padding: 15px;
+            }
+            QLabel {
+                font-family: "Microsoft YaHei", sans-serif;
+                font-size: 13px;
+                font-weight: bold;
+                color: #334155;
+                margin-top: 10px;
+                background: transparent;
+            }
+            QComboBox, QSlider {
+                background: transparent;
+            }
+        """)
+        control_layout = QVBoxLayout(control_panel)
+        control_layout.setSpacing(10)
+        
+        title_label = QLabel("自定义窗口控制台")
+        title_label.setStyleSheet("font-size: 15px; color: #0f172a; margin-bottom: 5px;")
+        control_layout.addWidget(title_label)
+        
+        # 1. Preset Selector
+        control_layout.addWidget(QLabel("选择主题预设风格 (Presets)"))
+        self.preset_combo = QComboBox()
+        self.preset_combo.addItem("默认风格 (default)", "default")
+        self.preset_combo.addItem("Shadcn UI风格 (shadcn)", "shadcn")
+        self.preset_combo.addItem("IDA Pro风格 (ida)", "ida")
+        self.preset_combo.addItem("向日葵风格 (sunlogin)", "sunlogin")
+        self.preset_combo.addItem("汽水音乐风格 (soda)", "soda")
+        self.preset_combo.addItem("Antigravity风格 (antigravity)", "antigravity")
+        self.preset_combo.setStyleSheet("""
+            QComboBox {
+                border: 1px solid #cbd5e1;
+                border-radius: 4px;
+                padding: 4px;
+                background-color: #ffffff;
+                color: #475569;
+                font-size: 12px;
+            }
+        """)
+        control_layout.addWidget(self.preset_combo)
+        
+        # 2. Custom Background Color override
+        control_layout.addWidget(QLabel("自定义背景色 (Hex/RGBA)"))
+        self.bg_color_input = QLineEdit()
+        self.bg_color_input.setPlaceholderText("留空则使用预设默认色")
+        self.bg_color_input.setStyleSheet("""
+            QLineEdit {
+                border: 1px solid #cbd5e1;
+                border-radius: 4px;
+                padding: 4px 8px;
+                background-color: #ffffff;
+                color: #475569;
+                font-size: 12px;
+            }
+        """)
+        control_layout.addWidget(self.bg_color_input)
+        
+        # 3. Custom Text Color override
+        control_layout.addWidget(QLabel("自定义文字色 (Hex)"))
+        self.text_color_input = QLineEdit()
+        self.text_color_input.setPlaceholderText("留空则使用预设默认色")
+        self.text_color_input.setStyleSheet("""
+            QLineEdit {
+                border: 1px solid #cbd5e1;
+                border-radius: 4px;
+                padding: 4px 8px;
+                background-color: #ffffff;
+                color: #475569;
+                font-size: 12px;
+            }
+        """)
+        control_layout.addWidget(self.text_color_input)
+        
+        # 4. Height override
+        control_layout.addWidget(QLabel("标题栏高度 (30 - 70 px)"))
+        self.height_slider = QSlider(Qt.Horizontal)
+        self.height_slider.setRange(30, 70)
+        self.height_slider.setValue(40)
+        control_layout.addWidget(self.height_slider)
+        
+        # 5. Radius override
+        control_layout.addWidget(QLabel("窗口圆角半径 (0 - 20 px)"))
+        self.radius_slider = QSlider(Qt.Horizontal)
+        self.radius_slider.setRange(0, 20)
+        self.radius_slider.setValue(8)
+        control_layout.addWidget(self.radius_slider)
+        
+        # 6. Close button behavior
+        control_layout.addWidget(QLabel("关闭按钮行为"))
+        self.close_combo = QComboBox()
+        self.close_combo.addItem("销毁窗口并退出 (close)", "close")
+        self.close_combo.addItem("隐藏到后台/托盘 (hide)", "hide")
+        self.close_combo.setStyleSheet("""
+            QComboBox {
+                border: 1px solid #cbd5e1;
+                border-radius: 4px;
+                padding: 4px;
+                background-color: #ffffff;
+                color: #475569;
+                font-size: 12px;
+            }
+        """)
+        control_layout.addWidget(self.close_combo)
+        
+        # 7. Action Button
+        self.btn_launch = MkButton("启动独立无边框窗口 🚀", type="primary")
+        self.btn_launch.clicked.connect(self.launch_demo_window)
+        control_layout.addWidget(self.btn_launch)
+        
+        control_layout.addStretch()
+        
+        main_layout.addWidget(control_panel)
+        
+        # Right Panel (Live Mini Preview)
+        preview_panel = QFrame(self)
+        preview_panel.setStyleSheet("""
+            QFrame {
+                background-color: #f1f5f9;
+                border: 1px dashed #cbd5e1;
+                border-radius: 8px;
+            }
+        """)
+        preview_layout = QVBoxLayout(preview_panel)
+        preview_layout.setContentsMargins(20, 20, 20, 20)
+        preview_layout.setSpacing(15)
+        
+        preview_header = QLabel("标题栏实时外观预览 (Local Mini Mock)")
+        preview_header.setStyleSheet("font-size: 14px; font-weight: bold; color: #334155; border: none; background: transparent;")
+        preview_layout.addWidget(preview_header)
+        
+        # Container to hold the mock window preview
+        self.mock_win_frame = QFrame()
+        self.mock_win_frame.setObjectName("MockWindowFrame")
+        self.mock_win_frame.setFrameShape(QFrame.Shape.NoFrame)
+        self.mock_win_frame.setStyleSheet("""
+            QFrame#MockWindowFrame {
+                background-color: #ffffff;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+            }
+        """)
+        mock_win_layout = QVBoxLayout(self.mock_win_frame)
+        mock_win_layout.setContentsMargins(0, 0, 0, 0)
+        mock_win_layout.setSpacing(0)
+        
+        # Add the MkTitleBar inside the mock frame
+        self.mock_titlebar = MkTitleBar(preset="default")
+        self.mock_titlebar.set_title("MonkeyUI - YOLO Target Detection Console")
+        # Set a dummy icon
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        after_path = os.path.join(base_dir, "assets", "after.png")
+        if os.path.exists(after_path):
+            self.mock_titlebar.set_icon(QPixmap(after_path))
+            
+        mock_win_layout.addWidget(self.mock_titlebar)
+        
+        # Fake client area in mock
+        self.mock_client = QWidget()
+        self.mock_client.setObjectName("MockClient")
+        self.mock_client_layout = QVBoxLayout(self.mock_client)
+        self.mock_client_layout.setContentsMargins(20, 40, 20, 40)
+        
+        self.mock_desc = QLabel("这里是子页面的模拟客户端区域。\n选择左侧的预设风格或滑动高度/圆角，以直接观察此处的实时变化。")
+        self.mock_desc.setStyleSheet("color: #94a3b8; font-size: 12px; line-height: 18px;")
+        self.mock_desc.setAlignment(Qt.AlignCenter)
+        self.mock_client_layout.addWidget(self.mock_desc)
+        
+        mock_win_layout.addWidget(self.mock_client, stretch=1)
+        
+        preview_layout.addWidget(self.mock_win_frame, stretch=1)
+        
+        main_layout.addWidget(preview_panel, stretch=1)
+        
+        # Connect settings signals
+        self.preset_combo.currentIndexChanged.connect(self.update_mini_preview)
+        self.bg_color_input.textChanged.connect(self.update_mini_preview)
+        self.text_color_input.textChanged.connect(self.update_mini_preview)
+        self.height_slider.valueChanged.connect(self.update_mini_preview)
+        self.radius_slider.valueChanged.connect(self.update_mini_preview)
+        
+        # Initial trigger
+        self.update_mini_preview()
+        
+    def update_mini_preview(self):
+        preset = self.preset_combo.currentData()
+        bg_color = self.bg_color_input.text().strip()
+        text_color = self.text_color_input.text().strip()
+        height = self.height_slider.value()
+        radius = self.radius_slider.value()
+        
+        # Apply configurations to mock titlebar
+        self.mock_titlebar.apply_preset(preset)
+        
+        # Override values
+        if bg_color:
+            self.mock_titlebar._bg_color = bg_color
+        if text_color:
+            self.mock_titlebar._text_color = text_color
+            
+        self.mock_titlebar._height = height
+        
+        # Refresh drawing
+        self.mock_titlebar.apply_theme_colors()
+        self.mock_titlebar.rebuild_layout()
+        
+        # Refresh Mock window container styling (border, radius)
+        border_color = "#e4e4e7" if preset == "shadcn" else "#3f3f3f" if preset == "ida" else "#313244" if preset == "antigravity" else "#e2e8f0"
+        
+        window_bg = "#ffffff"
+        client_text = "#94a3b8"
+        if preset in ["ida", "sunlogin", "soda", "antigravity"]:
+            window_bg = "#1e1e2e" if preset == "antigravity" else "#1e1f22" if preset == "sunlogin" else "#121212" if preset == "soda" else "#1a1a1a"
+            client_text = "#64748b"
+            
+        self.mock_win_frame.setStyleSheet(f"""
+            QFrame#MockWindowFrame {{
+                background-color: {window_bg};
+                border: 1px solid {border_color};
+                border-radius: {radius}px;
+            }}
+        """)
+        self.mock_desc.setStyleSheet(f"color: {client_text}; font-size: 12px; line-height: 18px;")
+        
+    def launch_demo_window(self):
+        preset = self.preset_combo.currentData()
+        bg_color = self.bg_color_input.text().strip()
+        text_color = self.text_color_input.text().strip()
+        height = self.height_slider.value()
+        radius = self.radius_slider.value()
+        close_behavior = self.close_combo.currentData()
+        
+        # Spawn MkWindow
+        self.demo_win = MkWindow(use_custom_title_bar=True, preset=preset)
+        self.demo_win.setWindowTitle("MonkeyUI - YOLO Target Detection System")
+        
+        # Set Window icon
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        after_path = os.path.join(base_dir, "assets", "after.png")
+        if os.path.exists(after_path):
+            self.demo_win.setWindowIcon(QIcon(after_path))
+            
+        self.demo_win.set_border_radius(radius)
+        self.demo_win.set_close_behavior(close_behavior)
+        
+        # Apply overrides if specified
+        if bg_color:
+            self.demo_win.titlebar._bg_color = bg_color
+        if text_color:
+            self.demo_win.titlebar._text_color = text_color
+        self.demo_win.titlebar._height = height
+        self.demo_win.titlebar.apply_theme_colors()
+        self.demo_win.titlebar.rebuild_layout()
+        self.demo_win.update_style()
+        
+        # Central contents dashboard for YOLO Detection mock
+        content = QWidget()
+        content_layout = QVBoxLayout(content)
+        content_layout.setContentsMargins(30, 25, 30, 25)
+        content_layout.setSpacing(15)
+        
+        title_font = QFont("Microsoft YaHei", 14, QFont.Bold)
+        info_label = QLabel("🚀 独立自定义无边框窗口示例")
+        info_label.setFont(title_font)
+        
+        # Select title color based on preset theme
+        title_color = "#ffffff" if preset in ["ida", "sunlogin", "soda", "antigravity"] else "#0f172a"
+        info_label.setStyleSheet(f"color: {title_color};")
+        
+        desc_label = QLabel(
+            f"<b>当前标题预设:</b> {preset}<br>"
+            f"<b>窗体圆角半径:</b> {radius}px<br>"
+            f"<b>高度大小:</b> {height}px<br>"
+            f"<b>关闭处理行为:</b> {close_behavior}<br><br>"
+            "💡 <b>核心交互提示:</b><br>"
+            "• 拖拽顶部的自定义标题栏可以<b>移动</b>该无边框窗口。<br>"
+            "• 双击顶部标题栏可以<b>最大化 / 还原</b>窗口大小。<br>"
+            "• 将鼠标指针悬停在<b>窗口外沿四周及四角</b>，会显现大小缩放箭头，拖拽即可直接<b>调整窗口大小</b>。<br>"
+            "• 窗体周围在无边框下自带高档<b>卡片式投影效果</b>，视觉十分丝滑！"
+        )
+        desc_color = "#94a3b8" if preset in ["ida", "sunlogin", "soda", "antigravity"] else "#475569"
+        desc_label.setStyleSheet(f"font-size: 12px; line-height: 20px; color: {desc_color};")
+        
+        close_btn = MkButton("关闭该独立窗口", type="danger")
+        close_btn.clicked.connect(self.demo_win.close)
+        
+        content_layout.addWidget(info_label, alignment=Qt.AlignmentFlag.AlignCenter)
+        content_layout.addWidget(desc_label, alignment=Qt.AlignmentFlag.AlignCenter)
+        content_layout.addWidget(close_btn, alignment=Qt.AlignmentFlag.AlignCenter)
+        
+        self.demo_win.setCentralWidget(content)
+        self.demo_win.resize(640, 420)
+        self.demo_win.show()
+
 class MainGallery(QWidget):
     def __init__(self):
         super().__init__()
@@ -795,6 +1107,9 @@ class MainGallery(QWidget):
         sub_feedback = self.sidebar.add_submenu("💬 反馈组件")
         self.sidebar.add_submenu_item(sub_feedback, "feedback", "信息提示与进度")
         
+        sub_layout = self.sidebar.add_submenu("🪟 窗口与布局")
+        self.sidebar.add_submenu_item(sub_layout, "window", "Window 自定义窗口")
+        
         self.sidebar.add_item("collapse", "🔄 折叠/展开侧边栏")
         
         main_layout.addWidget(self.sidebar)
@@ -813,6 +1128,7 @@ class MainGallery(QWidget):
         self.page_datatable = DataTableGallery()
         self.page_image_compare = ImageCompareGallery()
         self.page_image_split = ImageSplitGallery()
+        self.page_window = WindowGallery()
         self.page_empty = QWidget()
         
         self.content_area.addWidget(self.page_button)
@@ -826,6 +1142,7 @@ class MainGallery(QWidget):
         self.content_area.addWidget(self.page_datatable)
         self.content_area.addWidget(self.page_image_compare)
         self.content_area.addWidget(self.page_image_split)
+        self.content_area.addWidget(self.page_window)
         self.content_area.addWidget(self.page_empty)
         
         main_layout.addWidget(self.content_area, stretch=1)
@@ -872,6 +1189,8 @@ class MainGallery(QWidget):
             self.content_area.setCurrentWidget(self.page_image_compare)
         elif item_id == "image_split":
             self.content_area.setCurrentWidget(self.page_image_split)
+        elif item_id == "window":
+            self.content_area.setCurrentWidget(self.page_window)
         else:
             self.content_area.setCurrentWidget(self.page_empty)
 

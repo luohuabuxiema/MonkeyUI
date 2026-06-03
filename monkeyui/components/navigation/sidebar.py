@@ -428,6 +428,15 @@ class MkMenu(QWidget):
         """兼容老接口，现在折叠按钮默认显示"""
         self.collapse_btn.setVisible(enable)
 
+    def set_border_right(self, border_style: str):
+        """设置右侧边框样式，例如 'none' 或者 '1px solid #dcdfe6'"""
+        self.inner_frame.setStyleSheet(f"""
+            QFrame {{
+                background-color: #ffffff;
+                border-right: {border_style};
+            }}
+        """)
+
     def add_item(self, item_id: str, text: str, icon=None) -> MkMenuItem:
         """添加一级菜单项"""
         item = MkMenuItem(item_id, text, icon, height=self._item_height)
