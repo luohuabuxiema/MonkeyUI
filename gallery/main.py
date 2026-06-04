@@ -6,7 +6,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QStackedWidget, QFrame, QComboBox, QCheckBox, QPushButton, QLineEdit, QSlider
 from PySide6.QtGui import QFont, QPixmap, QIcon
 from PySide6.QtCore import Qt
-from monkeyui import (
+from monkeyqt import (
     MkButton, MkCheckBox, MkMenu, MkTopbar, MkBreadcrumb, MkTabs,
     MkAlert, MkProgressBar, MkProgressRing,
     MkPagination, MkDropdown, MkSwitch, MkSlider, MkDatePicker, MkForm,
@@ -939,7 +939,7 @@ class WindowGallery(QWidget):
         
         # Add the MkTitleBar inside the mock frame
         self.mock_titlebar = MkTitleBar(preset="default")
-        self.mock_titlebar.set_title("MonkeyUI - YOLO Target Detection Console")
+        self.mock_titlebar.set_title("MonkeyQt - YOLO Target Detection Console")
         # Set a dummy icon
         base_dir = os.path.dirname(os.path.abspath(__file__))
         after_path = os.path.join(base_dir, "assets", "after.png")
@@ -1025,7 +1025,7 @@ class WindowGallery(QWidget):
         
         # Spawn MkWindow
         self.demo_win = MkWindow(use_custom_title_bar=True, preset=preset)
-        self.demo_win.setWindowTitle("MonkeyUI - YOLO Target Detection System")
+        self.demo_win.setWindowTitle("MonkeyQt - YOLO Target Detection System")
         
         # Set Window icon
         base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -1167,7 +1167,7 @@ class UploadGallery(QWidget):
 class MainGallery(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("MonkeyUI - Enterprise Gallery")
+        self.setWindowTitle("MonkeyQt - Enterprise Gallery")
         self.resize(900, 600)
         self.setStyleSheet("background-color: #ffffff;")
         

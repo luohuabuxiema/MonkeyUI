@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QScrollArea, QFrame, QSizePolicy
 from PySide6.QtCore import Qt, Signal, Property, QPropertyAnimation, QEasingCurve
 from PySide6.QtGui import QIcon, QPainter, QColor
-from monkeyui.core.icons import MkPhosphorIcon, PHOSPHOR_ICONS
+from monkeyqt.core.icons import MkPhosphorIcon, PHOSPHOR_ICONS
 
 class MkMenuItem(QPushButton):
     """最底层的菜单项"""

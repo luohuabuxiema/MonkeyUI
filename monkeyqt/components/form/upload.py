@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 @File ：upload.py
-@Desc ：Modern web-style file drag-and-drop upload component for MonkeyUI.
+@Desc ：Modern web-style file drag-and-drop upload component for MonkeyQt.
 """
 import os
 from PySide6.QtWidgets import (
@@ -10,8 +10,8 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, Signal, QEvent, QSize
 from PySide6.QtGui import QPixmap, QIcon, QFont, QCursor
-from monkeyui.core.icons import MkPhosphorIcon
-from monkeyui.components.basic.button import MkButton
+from monkeyqt.core.icons import MkPhosphorIcon
+from monkeyqt.components.basic.button import MkButton
 
 class MkUpload(QWidget):
     """
@@ -185,7 +185,7 @@ class MkUpload(QWidget):
             
         # Display alerts if any rejected
         if rejected_reasons:
-            from monkeyui.components.form.auth import MkMessage
+            from monkeyqt.components.form.auth import MkMessage
             for reason in rejected_reasons:
                 MkMessage.warning(self.window(), reason)
                 

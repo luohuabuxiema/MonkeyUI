@@ -5,10 +5,10 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, Signal, QSize, QRect, QPoint
 from PySide6.QtGui import QPainter, QColor, QPixmap, QCursor, QFont, QPen
-from monkeyui.components.basic.checkbox import MkCheckBox
-from monkeyui.components.navigation.pagination import MkPagination
-from monkeyui.components.data.preview_dialogs import MkLightboxDialog, MkVideoPlayerDialog
-from monkeyui.core.icons import MkPhosphorIcon
+from monkeyqt.components.basic.checkbox import MkCheckBox
+from monkeyqt.components.navigation.pagination import MkPagination
+from monkeyqt.components.data.preview_dialogs import MkLightboxDialog, MkVideoPlayerDialog
+from monkeyqt.core.icons import MkPhosphorIcon
 
 
 class CheckBoxHeader(QHeaderView):

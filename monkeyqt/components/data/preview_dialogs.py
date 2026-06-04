@@ -2,7 +2,7 @@ import os
 from PySide6.QtWidgets import QWidget, QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QSlider, QFrame, QSizePolicy
 from PySide6.QtCore import Qt, QPoint, QSize, QUrl
 from PySide6.QtGui import QPainter, QColor, QPixmap, QWheelEvent, QMouseEvent, QDesktopServices
-from monkeyui.core.icons import MkPhosphorIcon
+from monkeyqt.core.icons import MkPhosphorIcon
 
 try:
     from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput

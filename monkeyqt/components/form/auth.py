@@ -5,10 +5,10 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, QPoint, QSize, QPropertyAnimation, QEasingCurve, QTimer, Signal
 from PySide6.QtGui import QPainter, QColor, QPixmap, QLinearGradient, QBrush, QFont, QPen, QImage
-from monkeyui.components.form.input import MkInput
-from monkeyui.components.form.captcha import MkCaptchaWidget, MkSmsCodeWidget
-from monkeyui.components.basic.checkbox import MkCheckBox
-from monkeyui.core.icons import MkPhosphorIcon
+from monkeyqt.components.form.input import MkInput
+from monkeyqt.components.form.captcha import MkCaptchaWidget, MkSmsCodeWidget
+from monkeyqt.components.basic.checkbox import MkCheckBox
+from monkeyqt.core.icons import MkPhosphorIcon
 
 
 class MkMessage(QWidget):

@@ -5,7 +5,7 @@ def create_component(category: str, name: str):
     """
     用法: python scripts/create_component.py navigation breadcrumb
     """
-    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'monkeyui', 'components'))
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'monkeyqt', 'components'))
     cat_dir = os.path.join(base_dir, category)
     
     if not os.path.exists(cat_dir):

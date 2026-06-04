@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 @File ：window.py
-@Desc ：Custom title bar and frameless window components for MonkeyUI.
+@Desc ：Custom title bar and frameless window components for MonkeyQt.
 """
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, QPoint, Signal, QEvent, QRect, QSize
 from PySide6.QtGui import QFont, QCursor, QColor, QMouseEvent, QIcon
-from monkeyui.core.icons import MkPhosphorIcon
+from monkeyqt.core.icons import MkPhosphorIcon
 
 class MkTitleBar(QWidget):
     """
@@ -192,7 +192,7 @@ class MkTitleBar(QWidget):
             self._border_bottom = "1px solid #313244"
             
             # Centered path & branch widget
-            breadcrumb = QLabel("src/monkeyui/components/layout/window.py")
+            breadcrumb = QLabel("src/monkeyqt/components/layout/window.py")
             breadcrumb.setStyleSheet("color: #a6adc8; font-size: 11px; font-family: Consolas;")
             branch_info = QLabel("⌥ main")
             branch_info.setStyleSheet("color: #f9e2af; font-size: 11px; font-weight: bold; background-color: #313244; padding: 2px 6px; border-radius: 4px;")
@@ -414,7 +414,7 @@ RESIZE_BOTTOM = 8
 
 class MkWindow(QMainWindow):
     """
-    Standard window class for MonkeyUI supporting native frames or custom title bars
+    Standard window class for MonkeyQt supporting native frames or custom title bars
     with border resizing, custom presets, and drop shadows.
     """
     

@@ -2,12 +2,12 @@ import sys
 from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel
 from PySide6.QtCore import Qt
 
-from monkeyui import MkButton, MkAlert, MkSwitch, MkSlider
+from monkeyqt import MkButton, MkAlert, MkSwitch, MkSlider
 
 class QuickStartApp(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("MonkeyUI 快速开始示例")
+        self.setWindowTitle("MonkeyQt 快速开始示例")
         self.resize(400, 300)
         
         layout = QVBoxLayout(self)
@@ -16,7 +16,7 @@ class QuickStartApp(QWidget):
         # 1. 警告提示 (Alert)
         alert = MkAlert(
             title="安装成功！", 
-            description="恭喜你，你已经成功将 MonkeyUI 作为第三方包导入并运行了！",
+            description="恭喜你，你已经成功将 MonkeyQt 作为第三方包导入并运行了！",
             mk_type="success", 
             show_icon=True
         )

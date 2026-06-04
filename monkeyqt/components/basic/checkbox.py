@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QCheckBox, QWidget
 from PySide6.QtCore import Property, Qt
-from monkeyui.common.enums import MkSize
+from monkeyqt.common.enums import MkSize
 
 class MkCheckBox(QCheckBox):
     """

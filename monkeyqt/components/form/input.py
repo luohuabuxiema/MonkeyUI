@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QLineEdit, QLabel, QPushButton, QHBoxLayout, QWidget
 from PySide6.QtCore import Qt, QSize, QPoint
 from PySide6.QtGui import QAction, QFocusEvent
-from monkeyui.core.icons import MkPhosphorIcon
+from monkeyqt.core.icons import MkPhosphorIcon
 
 class MkInput(QLineEdit):
     """

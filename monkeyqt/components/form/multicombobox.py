@@ -7,7 +7,7 @@ import time
 from PySide6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QScrollArea, QWidget, QLabel
 from PySide6.QtCore import Qt, Signal, QPoint, QEvent
 from PySide6.QtGui import QPainter, QPen, QColor
-from monkeyui import MkCheckBox
+from monkeyqt import MkCheckBox
 
 class MkMultiComboItem(QWidget):
     """Container widget representing a single item in the checklist dropdown."""

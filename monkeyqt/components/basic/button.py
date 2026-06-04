@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QPushButton, QWidget
 from PySide6.QtCore import Property, Qt
-from monkeyui.common.enums import MkType, MkSize
+from monkeyqt.common.enums import MkType, MkSize
 
 class MkButton(QPushButton):
     """MkButton 组件"""
