@@ -38,7 +38,8 @@ pip install monkeyqt
 如果你需要修改源码或贡献代码：
 
 ```bash
-# 1. 进入 MonkeyQt 根目录
+# 1. 克隆仓库
+git clone https://github.com/luohuabuxiema/MonkeyQt.git
 cd MonkeyQt
 
 # 2. 使用 pip 以可编辑模式安装
