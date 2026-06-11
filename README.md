@@ -1,70 +1,81 @@
 # MonkeyQt
 
-MonkeyQt 是一个专为 PySide6 打造的**企业级 UI 组件库**。设计灵感来源于前端极其流行的 Element Plus、shadcn-ui，为桌面应用程序开发者提供极高颜值、一致交互、并且开箱即用的 Web 风格组件。
+English | [简体中文](./README_zh.md)
 
-📖 **[在线使用文档](https://luohuabuxiema.github.io/MonkeyQt/)** | 🚀 **[快速开始](#🚀-快速开始)** | 🎨 **[主题预览](https://luohuabuxiema.github.io/MonkeyQt/guide/theme/)**
+MonkeyQt is an enterprise-grade UI component library tailored for **PySide6**. Inspired by highly popular web frontend frameworks like Element Plus and shadcn-ui, it provides desktop application developers with highly aesthetic, consistent interactions, and out-of-the-box web-style components.
 
-## ✨ 特性
+📖 **[Online Documentation](https://luohuabuxiema.github.io/MonkeyQt/)** | 🚀 **[Quick Start](#🚀-quick-start)** | 🎨 **[Theme Preview](https://luohuabuxiema.github.io/MonkeyQt/guide/theme/)**
 
-- **现代化风格**：复刻流行的前端组件。
-- **组件丰富**：支持按钮、复选框、下拉菜单、表格、时间选择器、导航栏、分页器、进度条、滑块等丰富组件。
-- **开箱即用**：一键导入即可使用，极其简单。
-- **无缝集成**：纯 PySide6 原生实现（QWidget、QSS、QPainter），不依赖任何第三方重量级渲染引擎。
+## ✨ Features
 
-## 📖 使用文档
+- **Modern Style**: Replicates popular web frontend components and design systems.
+- **Rich Components**: Supports buttons, checkboxes, dropdowns, tables, date pickers, topbars, pagination, progress bars, sliders, and other rich components.
+- **Out-of-the-box**: One-click import for extremely simple usage.
+- **Seamless Integration**: Built entirely with native PySide6 (QWidget, QSS, QPainter), with no dependencies on third-party heavy rendering engines.
 
-你可以通过以下链接访问我们的完整使用指南、主题样式预览以及所有组件的使用手册：
+## 📖 Documentation
 
-👉 **[MonkeyQt 官方使用文档](https://luohuabuxiema.github.io/MonkeyQt/)**
+You can access our complete usage guide, theme style preview, and all component manuals via the following link:
 
-文档内包含：
-- **安装与配置指南**
-- **快速开始范例**
-- **67 种内置设计风格（主题样式）的滑动切换与定制 API**
-- **所有基础/高级组件开发预览与参数详解（包括 MkButton、MkDataTable、MkAuthScreen、MkUpload、MkImageCompare 等）**
+👉 **[Official MonkeyQt Documentation](https://luohuabuxiema.github.io/MonkeyQt/)**
 
-## 📦 安装
+The documentation includes:
+- **Installation & Configuration Guide**
+- **Quick Start Examples**
+- **67 Built-in Design Styles (Themes) with Smooth Sliding Switching & Customization APIs**
+- **Detailed Development Previews & Parameters for all basic/advanced components (including MkButton, MkDataTable, MkAuthScreen, MkUpload, MkImageCompare, etc.)**
 
-在正式发布到 PyPI 之前，你可以在本地将本项目作为开发者包进行安装：
+## 📦 Installation
+
+You can install the official release directly from PyPI:
 
 ```bash
-# 1. 进入 MonkeyQt 根目录
+pip install monkeyqt
+```
+
+### Installation from Source (Development Mode)
+
+If you want to modify the source code or contribute:
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/luohuabuxiema/MonkeyQt.git
 cd MonkeyQt
 
-# 2. 使用 pip 以可编辑模式安装 (-e 参数代表可编辑，你修改源码会立即生效)
+# 2. Install in editable mode
 pip install -e .
 ```
 
-## 🚀 快速开始
+## 🚀 Quick Start
 
-一旦安装完成，你在电脑上的任何 Python 脚本中都可以直接 `import monkeyqt` 来使用它了，不需要再手动把路径加入 `sys.path`。
+Once the installation is complete, you can directly `import monkeyqt` in any Python script on your computer without manually adding paths to `sys.path`.
 
-新建一个 `main.py` 测试：
+Create a new `main.py` to test:
 
 ```python
 import sys
 from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout
-# 极简引入
+# Simple import
 from monkeyqt import MkButton, MkAlert
 
 class MyApp(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("MonkeyQt 快速开始")
-        self.resize(400, 300)
-        
-        layout = QVBoxLayout(self)
-        
-        # 1. 警告提示组件
-        alert = MkAlert(title="欢迎使用 MonkeyQt", mk_type="success", show_icon=True)
-        layout.addWidget(alert)
-        
-        # 2. 按钮组件
-        btn = MkButton("主要按钮", type="primary")
-        btn.clicked.connect(lambda: print("MonkeyQt is awesome!"))
-        layout.addWidget(btn)
-        
-        layout.addStretch()
+      def __init__(self):
+          super().__init__()
+          self.setWindowTitle("MonkeyQt Quick Start")
+          self.resize(400, 300)
+          
+          layout = QVBoxLayout(self)
+          
+          # 1. Alert component
+          alert = MkAlert(title="Welcome to MonkeyQt", mk_type="success", show_icon=True)
+          layout.addWidget(alert)
+          
+          # 2. Button component
+          btn = MkButton("Primary Button", type="primary")
+          btn.clicked.connect(lambda: print("MonkeyQt is awesome!"))
+          layout.addWidget(btn)
+          
+          layout.addStretch()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
@@ -72,4 +83,3 @@ if __name__ == "__main__":
     window.show()
     sys.exit(app.exec())
 ```
-
