@@ -6,6 +6,22 @@ MonkeyQt is an enterprise-grade UI component library tailored for **PySide6**. I
 
 📖 **[Online Documentation](https://luohuabuxiema.github.io/MonkeyQt/)** | 🚀 **[Quick Start](#🚀-quick-start)** | 🎨 **[Theme Preview](https://luohuabuxiema.github.io/MonkeyQt/guide/theme/)**
 
+## 🎨 Themes & Interactive Components
+
+MonkeyQt supports 67+ design styles (themes). Here are some previews:
+
+| 玻璃拟态 (Glassmorphism) | 新拟物化 (Neumorphism) |
+| :---: | :---: |
+| ![Glassmorphism](docs-site/docs/assets/images/theme_glassmorphism.png) | ![Neumorphism](docs-site/docs/assets/images/theme_neumorphism.png) |
+| **赛博朋克 (Cyberpunk)** | **科幻 HUD (HUD / Sci-Fi)** |
+| ![Cyberpunk](docs-site/docs/assets/images/theme_cyberpunk.png) | ![HUD / Sci-Fi](docs-site/docs/assets/images/theme_hud_scifi.png) |
+
+### 🎬 Interactive Components (GIFs)
+
+| 图像对比组件 (MkImageCompare) | 图像分割组件 (MkImageSplit) |
+| :---: | :---: |
+| ![Image Compare](docs-site/docs/assets/images/MkImageCompare01.gif) | ![Image Split](docs-site/docs/assets/images/MkImageSplit01.gif) |
+
 ## ✨ Features
 
 - **Modern Style**: Replicates popular web frontend components and design systems.

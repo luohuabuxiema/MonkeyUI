@@ -6,6 +6,22 @@ MonkeyQt 是一个专为 PySide6 打造的**企业级 UI 组件库**。设计灵
 
 📖 **[在线使用文档](https://luohuabuxiema.github.io/MonkeyQt/)** | 🚀 **[快速开始](#🚀-快速开始)** | 🎨 **[主题预览](https://luohuabuxiema.github.io/MonkeyQt/guide/theme/)**
 
+## 🎨 主题与交互组件效果预览
+
+MonkeyQt 支持 67+ 种内置主题样式。以下是部分代表性风格的效果预览：
+
+| 玻璃拟态 (Glassmorphism) | 新拟物化 (Neumorphism) |
+| :---: | :---: |
+| ![玻璃拟态](docs-site/docs/assets/images/theme_glassmorphism.png) | ![新拟物化](docs-site/docs/assets/images/theme_neumorphism.png) |
+| **赛博朋克 (Cyberpunk)** | **科幻 HUD (HUD / Sci-Fi)** |
+| ![赛博朋克](docs-site/docs/assets/images/theme_cyberpunk.png) | ![科幻 HUD](docs-site/docs/assets/images/theme_hud_scifi.png) |
+
+### 🎬 交互式特色组件 (GIF)
+
+| 图像对比组件 (MkImageCompare) | 图像分割组件 (MkImageSplit) |
+| :---: | :---: |
+| ![图像对比组件](docs-site/docs/assets/images/MkImageCompare01.gif) | ![图像分割组件](docs-site/docs/assets/images/MkImageSplit01.gif) |
+
 ## ✨ 特性
 
 - **现代化风格**：复刻流行的前端组件。
