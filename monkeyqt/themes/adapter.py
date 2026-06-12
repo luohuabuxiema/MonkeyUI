@@ -1978,6 +1978,51 @@ def _apply_window_container(widget: QWidget, p: dict[str, str | int | bool]) -> 
         except RuntimeError:
             pass
 
+    content_host = getattr(window, "_content_host", None)
+    if content_host is not None:
+        _save_widget(content_host)
+        content_host.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        content_host.setStyleSheet(f"""
+            QWidget#MkWindowContentHost {{
+                background-color: {p['bg']};
+                border: none;
+            }}
+        """)
+
+    desktop_shell = getattr(window, "_desktop_shell", None)
+    if desktop_shell is not None:
+        _save_widget(desktop_shell)
+        desktop_shell.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        desktop_shell.setStyleSheet(f"""
+            QWidget#MkWindowDesktopShell {{
+                background-color: {p['bg']};
+                border: none;
+            }}
+        """)
+
+    sidebar_host = getattr(window, "_sidebar_host", None)
+    if sidebar_host is not None:
+        _save_widget(sidebar_host)
+        sidebar_host.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        sidebar_host.setStyleSheet(f"""
+            QWidget#MkWindowSidebarHost {{
+                background-color: {p['sidebar_surface']};
+                border: none;
+            }}
+        """)
+
+
+def _titlebar_surface(widget: QWidget, p: dict[str, str | int | bool]) -> str:
+    follows_content = bool(widget.property("mkContentAlignedTitleBar"))
+    if not follows_content:
+        window = widget.window()
+        follows_content = bool(getattr(window, "_sidebar_full_height", False))
+    use_content_surface = (
+        follows_content
+        and not ThemeEngine.has_override("--titlebar-bg")
+    )
+    return str(p["bg"] if use_content_surface else p["chrome_surface"])
+
 
 def _apply_titlebar(widget: QWidget, p: dict[str, str | int | bool]) -> None:
     if not hasattr(widget, "_mk_theme_original_titlebar_state"):
@@ -2007,7 +2052,7 @@ def _apply_titlebar(widget: QWidget, p: dict[str, str | int | bool]) -> None:
                 return self._mk_theme_original_paint_event(event)
 
             palette = _palette()
-            surface = str(palette["chrome_surface"])
+            surface = _titlebar_surface(self, palette)
 
             painter = QPainter(self)
             painter.setRenderHint(QPainter.RenderHint.Antialiasing, False)
@@ -2020,9 +2065,9 @@ def _apply_titlebar(widget: QWidget, p: dict[str, str | int | bool]) -> None:
 
 
 def _force_titlebar_theme(widget: QWidget, p: dict[str, str | int | bool]) -> None:
-    surface = str(p["chrome_surface"])
+    surface = _titlebar_surface(widget, p)
     hover = _control_muted_surface(p) if p["glass"] else str(p["surface_muted"])
-    text = str(p["chrome_text"])
+    text = readable_text(surface)
 
     widget._bg_color = surface
     widget._text_color = text

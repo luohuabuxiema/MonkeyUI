@@ -116,6 +116,11 @@ class ThemeEngine(QObject):
         return cls._current_tokens.get(key, default)
 
     @classmethod
+    def has_override(cls, key: str) -> bool:
+        """Return whether a token was explicitly overridden by the caller."""
+        return key in cls._overrides
+
+    @classmethod
     def current_theme(cls) -> str:
         """返回当前活跃的风格名"""
         cls._ensure_current()

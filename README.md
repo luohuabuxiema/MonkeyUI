@@ -2,7 +2,7 @@
 
 English | [简体中文](./README_zh.md)
 
-MonkeyQt is an enterprise-grade UI component library tailored for **PySide6**. Inspired by highly popular web frontend frameworks like Element Plus and shadcn-ui, it provides desktop application developers with highly aesthetic, consistent interactions, and out-of-the-box web-style components.
+monkeyqt is a modern UI component library tailored for **PySide6** desktop application developers. Its design inspiration comes from the front-end **Element Plus** and **shadcn-ui**, and it combines ui-ux-pro-max-skill to create themes with different styles, providing desktop applications with extremely high-quality appearance, consistent interaction, and out-of-the-box web-style components.
 
 📖 **[Online Documentation](https://luohuabuxiema.github.io/MonkeyQt/)** | 🚀 **[Quick Start](#🚀-quick-start)** | 🎨 **[Theme Preview](https://luohuabuxiema.github.io/MonkeyQt/guide/theme/)**
 

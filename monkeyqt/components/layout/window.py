@@ -421,10 +421,17 @@ class MkWindow(QMainWindow):
     with border resizing, custom presets, and drop shadows.
     """
     
-    def __init__(self, use_custom_title_bar=True, preset="default", parent=None):
+    def __init__(
+        self,
+        use_custom_title_bar=True,
+        preset="default",
+        parent=None,
+        sidebar_full_height=False,
+    ):
         super().__init__(parent)
         self.use_custom_title_bar = use_custom_title_bar
         self._preset = preset
+        self._sidebar_full_height = bool(sidebar_full_height)
         self._close_behavior = "close"  # "close" or "hide"
         self._border_radius = 8
         self._normal_geometry = None
@@ -443,6 +450,15 @@ class MkWindow(QMainWindow):
         self.container_layout = None
         self.titlebar = None
         self.user_central_widget = None
+        self._desktop_shell = None
+        self._desktop_shell_layout = None
+        self._sidebar_host = None
+        self._sidebar_host_layout = None
+        self._content_host = None
+        self._content_host_layout = None
+        self._promoted_sidebar = None
+        self._sidebar_source_layout = None
+        self._sidebar_source_index = -1
         
         self.setMouseTracking(True)
         
@@ -478,6 +494,42 @@ class MkWindow(QMainWindow):
         self.container_layout = QVBoxLayout(self.container_frame)
         self.container_layout.setContentsMargins(0, 0, 0, 0)
         self.container_layout.setSpacing(0)
+
+        # Desktop shell. In the default mode the hidden sidebar host takes no
+        # space, so the layout is identical to the original top/bottom layout.
+        self._desktop_shell = QWidget(self.container_frame)
+        self._desktop_shell.setObjectName("MkWindowDesktopShell")
+        self._desktop_shell.setProperty("mkDesktopShell", True)
+        self._desktop_shell_layout = QHBoxLayout(self._desktop_shell)
+        self._desktop_shell_layout.setContentsMargins(0, 0, 0, 0)
+        self._desktop_shell_layout.setSpacing(0)
+
+        self._sidebar_host = QWidget(self._desktop_shell)
+        self._sidebar_host.setObjectName("MkWindowSidebarHost")
+        self._sidebar_host.setProperty("mkSidebarHost", True)
+        self._sidebar_host.setSizePolicy(
+            QSizePolicy.Policy.Fixed,
+            QSizePolicy.Policy.Expanding,
+        )
+        self._sidebar_host_layout = QVBoxLayout(self._sidebar_host)
+        self._sidebar_host_layout.setContentsMargins(0, 0, 0, 0)
+        self._sidebar_host_layout.setSpacing(0)
+        self._sidebar_host.hide()
+
+        self._content_host = QWidget(self._desktop_shell)
+        self._content_host.setObjectName("MkWindowContentHost")
+        self._content_host.setProperty("mkContentHost", True)
+        self._content_host.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Expanding,
+        )
+        self._content_host_layout = QVBoxLayout(self._content_host)
+        self._content_host_layout.setContentsMargins(0, 0, 0, 0)
+        self._content_host_layout.setSpacing(0)
+
+        self._desktop_shell_layout.addWidget(self._sidebar_host)
+        self._desktop_shell_layout.addWidget(self._content_host, stretch=1)
+        self.container_layout.addWidget(self._desktop_shell, stretch=1)
         
         # Apply Shadow Effect
         self._shadow_effect = QGraphicsDropShadowEffect(self)
@@ -488,7 +540,8 @@ class MkWindow(QMainWindow):
         
         # 3. Create Title Bar
         self.titlebar = MkTitleBar(self, preset=self._preset)
-        self.container_layout.addWidget(self.titlebar)
+        self._sync_sidebar_mode_properties()
+        self._content_host_layout.addWidget(self.titlebar)
         
         self.shadow_layout.addWidget(self.container_frame)
         super().setCentralWidget(self._root_widget)
@@ -508,6 +561,33 @@ class MkWindow(QMainWindow):
     def set_border_radius(self, radius: int):
         self._border_radius = radius
         self.update_style()
+
+    def set_sidebar_full_height(self, enabled: bool):
+        """
+        Switch between the classic top title bar layout and a desktop layout
+        where the sidebar occupies the full window height.
+
+        The first direct MkMenu child in the central widget is detected
+        automatically, so callers only need to toggle this one option.
+        """
+        self._sidebar_full_height = bool(enabled)
+        self._sync_sidebar_mode_properties()
+        self._apply_sidebar_layout()
+
+    def _sync_sidebar_mode_properties(self):
+        """Expose the desktop split mode to the global theme adapter."""
+        if self.titlebar is None:
+            return
+
+        self.titlebar.setProperty(
+            "mkContentAlignedTitleBar",
+            self._sidebar_full_height,
+        )
+        self.titlebar.apply_theme_colors()
+        style = self.titlebar.style()
+        style.unpolish(self.titlebar)
+        style.polish(self.titlebar)
+        self.titlebar.update()
 
     def update_style(self):
         if not self.use_custom_title_bar:
@@ -537,16 +617,110 @@ class MkWindow(QMainWindow):
             super().setCentralWidget(widget)
             return
             
-        # If custom frame, we add the widget to the vertical layout container
+        # If custom frame, place the page under the title bar in the content
+        # column. The sidebar can then be promoted beside this column.
         if self.user_central_widget:
-            self.container_layout.removeWidget(self.user_central_widget)
+            self._restore_promoted_sidebar()
+            self._content_host_layout.removeWidget(self.user_central_widget)
             self.user_central_widget.deleteLater()
             
         self.user_central_widget = widget
         if widget:
             widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
             widget.setMouseTracking(True)
-            self.container_layout.addWidget(widget, stretch=1)
+            self._content_host_layout.addWidget(widget, stretch=1)
+            self._apply_sidebar_layout()
+
+    def _apply_sidebar_layout(self):
+        if not self.use_custom_title_bar or not self.user_central_widget:
+            return
+
+        if not self._sidebar_full_height:
+            self._restore_promoted_sidebar()
+            return
+
+        if self._promoted_sidebar is not None:
+            return
+
+        sidebar_info = self._find_sidebar_candidate(self.user_central_widget)
+        if sidebar_info is None:
+            return
+
+        sidebar, source_layout, source_index = sidebar_info
+        self._promoted_sidebar = sidebar
+        self._sidebar_source_layout = source_layout
+        self._sidebar_source_index = source_index
+
+        source_layout.removeWidget(sidebar)
+        sidebar.setParent(self._sidebar_host)
+        sidebar.installEventFilter(self)
+        self._sidebar_host_layout.addWidget(sidebar)
+        self._sidebar_host.setFixedWidth(sidebar.width())
+        self._sidebar_host.show()
+        sidebar.show()
+        self._sidebar_host.updateGeometry()
+        self._desktop_shell.updateGeometry()
+
+    def _restore_promoted_sidebar(self):
+        sidebar = self._promoted_sidebar
+        source_layout = self._sidebar_source_layout
+        if sidebar is None:
+            if self._sidebar_host:
+                self._sidebar_host.hide()
+            return
+
+        self._sidebar_host_layout.removeWidget(sidebar)
+        sidebar.removeEventFilter(self)
+        sidebar.setParent(self.user_central_widget)
+
+        if source_layout is not None:
+            index = max(0, self._sidebar_source_index)
+            if hasattr(source_layout, "insertWidget"):
+                source_layout.insertWidget(index, sidebar)
+            else:
+                source_layout.addWidget(sidebar)
+
+        sidebar.show()
+        self._sidebar_host.hide()
+        self._promoted_sidebar = None
+        self._sidebar_source_layout = None
+        self._sidebar_source_index = -1
+
+    @staticmethod
+    def _find_sidebar_candidate(widget: QWidget):
+        layout = widget.layout()
+        if layout is None:
+            return None
+
+        for index in range(layout.count()):
+            candidate = layout.itemAt(index).widget()
+            if candidate is None:
+                continue
+
+            class_name = candidate.__class__.__name__
+            is_sidebar = (
+                class_name == "MkMenu"
+                or bool(candidate.property("mkSidebar"))
+                or candidate.objectName() in {"MkMenu", "Sidebar", "AppSidebar"}
+            )
+            if is_sidebar:
+                return candidate, layout, index
+
+        return None
+
+    def eventFilter(self, watched, event):
+        if (
+            watched is self._promoted_sidebar
+            and event.type() in {
+                QEvent.Type.Resize,
+                QEvent.Type.Show,
+                QEvent.Type.LayoutRequest,
+            }
+        ):
+            self._sidebar_host.setFixedWidth(watched.width())
+            self._sidebar_host.updateGeometry()
+
+        return super().eventFilter(watched, event)
 
     def setWindowTitle(self, title: str):
         super().setWindowTitle(title)

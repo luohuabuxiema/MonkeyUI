@@ -2,7 +2,7 @@
 
 [English](./README.md) | 简体中文
 
-MonkeyQt 是一个专为 PySide6 打造的**企业级 UI 组件库**。设计灵感来源于前端极其流行的 Element Plus、shadcn-ui，为桌面应用程序开发者提供极高颜值、一致交互、并且开箱即用的 Web 风格组件。
+monkeyqt 是一个为 **PySide6** 桌面应用开发者量身打造的现代化 UI 组件库。设计灵感来源于前端的 **Element Plus** 和 **shadcn-ui**，并结合ui-ux-pro-max-skill技能打造不同风格的主题样式，为桌面应用程序提供极高颜值、一致交互、并且开箱即用的 Web 风格组件。
 
 📖 **[在线使用文档](https://luohuabuxiema.github.io/MonkeyQt/)** | 🚀 **[快速开始](#🚀-快速开始)** | 🎨 **[主题预览](https://luohuabuxiema.github.io/MonkeyQt/guide/theme/)**
 
